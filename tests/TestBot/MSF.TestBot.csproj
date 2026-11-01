@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    MSF TestBot: development-only automation mod. It is inert unless a run file exists
+    (Mods\Config\Mod Settings\MSF_TestBot\run.json), which scripts\test-run.ps1 creates and removes.
+    Never ship it to players. Built against the real game only: -p:ManagedDir=<game>\mysummercar_Data\Managed
+    (MSCLoader 1.4 puts MSCLoader.dll, Newtonsoft.Json.dll and 0Harmony.dll there).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+    <AssemblyName>MSF.TestBot</AssemblyName>
+    <RootNamespace>MSF.TestBot</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Deterministic>true</Deterministic>
+    <DebugType>none</DebugType>
+    <NoWarn>$(NoWarn);CS0618;CS0612</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net35" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine"><HintPath>$(ManagedDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="PlayMaker"><HintPath>$(ManagedDir)\PlayMaker.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MSCLoader"><HintPath>$(ManagedDir)\MSCLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(ManagedDir)\Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(ManagedDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+
+  <Target Name="RequireGame" BeforeTargets="CoreCompile">
+    <Error Text="[TestBot] Pass -p:ManagedDir=&lt;game&gt;\mysummercar_Data\Managed (the bot is built against the real game only)." Condition=" '$(ManagedDir)' == '' Or !Exists('$(ManagedDir)\UnityEngine.dll') Or !Exists('$(ManagedDir)\MSCLoader.dll') " />
+  </Target>
+
+</Project>

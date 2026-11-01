@@ -1,0 +1,33 @@
+{
+  "Name": "msf-srcheck",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "Upscaling mode switches: the player's camera must never keep its small target between frames (status: 'target left set' 0, centre ray 0 deg). Off -> Quality -> DLAA -> Performance -> Off -> Ultra -> Balanced, with frame generation 2x for the last two." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-5.0, 1.0, 3.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "console", "Text": "msf mode off" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf mode quality" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf mode dlaa" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf mode performance" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf mode off" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf fg 2" },
+    { "Op": "console", "Text": "msf mode ultra" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "ultra-fg" },
+    { "Op": "console", "Text": "msf mode balanced" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "balanced-fg" },
+    { "Op": "console", "Text": "msf reflex boost" },
+    { "Op": "console", "Text": "msf reflex on" },
+    { "Op": "console", "Text": "msf fg off" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf status" },
+    { "Op": "quit" }
+  ]
+}

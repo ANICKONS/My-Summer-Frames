@@ -1,0 +1,29 @@
+{
+  "Name": "msf-fgquick",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "DLSS frame generation, short check: 2x next to the Satsuma, the FG counter under the game's FPS (screenshots on / off), dumps of the game's back buffer and of the bridge's frames, quit." },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-5.0, 1.0, 3.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "screenshot", "Label": "nofg" },
+    { "Op": "console", "Text": "msf fg 2" },
+    { "Op": "wait", "Seconds": 5 },
+    { "Op": "screenshot", "Label": "fg2" },
+    { "Op": "tree", "Path": "GUI/HUD", "Label": "hud", "Max": 1 },
+    { "Op": "console", "Text": "msf fg dump" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "console", "Text": "msf fg 3" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "screenshot", "Label": "fg3" },
+    { "Op": "console", "Text": "msf fgfps off" },
+    { "Op": "wait", "Seconds": 1 },
+    { "Op": "screenshot", "Label": "fg3-nocounter" },
+    { "Op": "console", "Text": "msf fgfps on" },
+    { "Op": "console", "Text": "msf fg off" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "fgoff" },
+    { "Op": "console", "Text": "msf status" },
+    { "Op": "quit" }
+  ]
+}

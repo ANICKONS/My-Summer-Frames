@@ -1,0 +1,27 @@
+{
+  "Name": "msf-probe",
+  "SettleSeconds": 10,
+  "LoadTimeoutSeconds": 600,
+  "Steps": [
+    { "Op": "log", "Text": "DLSS phase 0: the native plugin loads from Plugins, render-thread events arrive, NGX starts on the game's D3D11 device (DLSS/DLAA) and on a D3D12 device of the same adapter (frame generation). Then the cameras and the render targets bound at OnPostRender / OnRenderImage: at home and in the Satsuma." },
+    { "Op": "console", "Text": "msf status" },
+    { "Op": "console", "Text": "msf cameras spawn" },
+    { "Op": "console", "Text": "msf probe" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "spawn" },
+
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)", "Local": true, "Pos": [-3.0, 1.0, 0.0], "Target": "SATSUMA(557kg, 248)" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "teleport", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Pos": [0.0, 0.0, 0.0] },
+    { "Op": "look", "Target": "SATSUMA(557kg, 248)", "Pitch": -3 },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "fsmevent", "Path": "SATSUMA(557kg, 248)/PlayerTrigger/DriveTrigger", "Fsm": "PlayerTrigger", "Event": "Key DOWN" },
+    { "Op": "wait", "Seconds": 4 },
+    { "Op": "console", "Text": "msf cameras car" },
+    { "Op": "console", "Text": "msf probe" },
+    { "Op": "wait", "Seconds": 2 },
+    { "Op": "screenshot", "Label": "car" },
+    { "Op": "console", "Text": "msf status" },
+    { "Op": "quit" }
+  ]
+}

@@ -1,0 +1,12 @@
+# NVIDIA DLSS SDK, NVAPI and AMD FSR SDK (fetched by build.ps1; DLSS SDK: NVIDIA RTX SDK license; never committed)
+_sdk/
+# Build output (out\ is what goes into the game folder; it ships as a release, not in git)
+out/
+obj/
+bin/
+# Game sessions of scripts\run.ps1 (save backups, logs, screenshots)
+_testruns/
+__pycache__/
+*.pyc
+.vs/
+*.user
