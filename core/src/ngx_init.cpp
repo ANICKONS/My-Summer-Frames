@@ -142,10 +142,17 @@ namespace msf
         const wchar_t* paths[] = {g.featureDir.c_str(), nullptr};
         NVSDK_NGX_FeatureCommonInfo info = CommonInfo(paths);
         // NGX (DLSS) exists on NVIDIA video cards only; elsewhere only our D3D12 device is made (for FSR).
-        bool nvidia = adapter && desc.VendorId == 0x10DE;
-        if (nvidia) InitD3D11(g.device11, info);
-        else Log("DLSS: not an NVIDIA video card (vendor 0x%04X): DLSS and DLSS Frame Generation off", desc.VendorId);
-        if (adapter) InitD3D12(adapter.Get(), info, nvidia);
+        // Note: VendorId can be unreliable on some systems, so we try NGX init regardless and check the result.
+        bool nvidiaByVendor = adapter && desc.VendorId == 0x10DE;
+        bool nvidiaByName = adapter && (wcsstr(desc.Description, L"NVIDIA") != nullptr || wcsstr(desc.Description, L"GeForce") != nullptr || wcsstr(desc.Description, L"RTX") != nullptr);
+        bool tryNgx = nvidiaByVendor || nvidiaByName;
+        if (tryNgx)
+        {
+            InitD3D11(g.device11, info);
+            if (!ngx11) Log("DLSS: NGX D3D11 init failed (vendor 0x%04X, %s): trying D3D12", desc.VendorId, Narrow(desc.Description).c_str());
+        }
+        else Log("DLSS: not an NVIDIA video card (vendor 0x%04X, %s): DLSS and DLSS Frame Generation off", desc.VendorId, Narrow(desc.Description).c_str());
+        if (adapter) InitD3D12(adapter.Get(), info, tryNgx);
         InitFsr(device12.Get()); // any video card with a D3D12 device
         InitReflex();
 

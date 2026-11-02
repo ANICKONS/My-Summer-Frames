@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2
+
+- **Fixed:** DLSS and Reflex detection on systems where GPU vendor ID is reported incorrectly. Now checks GPU name (NVIDIA/GeForce/RTX) in addition to vendor ID.
+
 ## 0.5.1
 
 - **Improved:** the capabilities list in the settings page and the console is now structured (one feature per line: DLSS, DLSS FG, FSR, FSR FG, Reflex).
