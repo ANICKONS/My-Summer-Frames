@@ -131,15 +131,20 @@ namespace MySummerFrames
                 commandAdded = true;
                 ConsoleCommand.Add(new MsfCommand());
             }
-            if (started) return;
-            started = true;
-            SettingsDir = ModLoader.GetModSettingsFolder(this);
-            AssetsDir = ModLoader.GetModAssetsFolder(this);
-            try { Directory.CreateDirectory(SettingsDir); } catch { }
+            if (!started)
+            {
+                started = true;
+                SettingsDir = ModLoader.GetModSettingsFolder(this);
+                AssetsDir = ModLoader.GetModAssetsFolder(this);
+                try { Directory.CreateDirectory(SettingsDir); } catch { }
 
-            string err = Installer.EnsurePlugin(AssetsDir);
-            if (err == null && !Native.Load(SettingsDir, AssetsDir)) err = Native.LoadError;
-            if (err != null) { Say.Problem(Loc.F("con.plugin", err)); return; }
+                string err = Installer.EnsurePlugin(AssetsDir);
+                if (err == null && !Native.Load(SettingsDir, AssetsDir)) err = Native.LoadError;
+                if (err != null) { Say.Problem(Loc.F("con.plugin", err)); return; }
+            }
+            // Back in the menu from the game, MSCLoader destroys every object (ours too, DontDestroyOnLoad or not) and
+            // loads the menu again: the native plugin stays loaded, the Runner is made again.
+            if (!Native.Loaded || Host != null) return;
 
             GameObject go = new GameObject("MySummerFrames");
             UnityEngine.Object.DontDestroyOnLoad(go);
@@ -222,6 +227,7 @@ namespace MySummerFrames
         /// <summary>What runs: generated frames (0 = off) and the path (Native.FgKind*).</summary>
         public int FgApplied, FgKindApplied;
         float nextFgCheck;
+        bool hadCamera;
         /// <summary>The native start is reported (the "ready" line): the state lines and notes may follow.</summary>
         bool ready;
         // The notes shown (keys of Strings): what runs differs from what is chosen.
@@ -281,6 +287,8 @@ namespace MySummerFrames
                 arg = null;
                 want = 0;
             }
+            // Only with the player's camera (the game scene): not in the menu, nor while a scene loads.
+            if (DlssCamera.Current == null) want = 0;
             if (un != null && un != upNote) Say.Info(un);
             if (fn != null && (fn != fgNote || !Equals(arg, fgNoteArg))) Say.Info(fn, arg);
             upNote = un;
@@ -390,32 +398,41 @@ namespace MySummerFrames
             Native.ReflexMarker(Native.MarkerSimulationEnd);
         }
 
+        // Destroyed by MSCLoader on the way back to the menu (or at exit): nothing drives the bridge any more, so it
+        // stops and its window goes, else the window stays over the game with the last frame (the game looks hung).
         void OnDestroy()
         {
             Camera.onPreCull -= OnAnyPreCull;
+            if (FgApplied > 0) Native.FgSetMode(FgKindApplied, 0);
+            FgApplied = FgKindApplied = 0;
+            Native.FgTick();
         }
 
         public IEnumerator Init()
         {
             yield return new WaitForEndOfFrame();
-            // Unity calls UnitySetGraphicsDevice when it loads the plugin from Plugins; else take the device from a texture.
-            if (Native.Get(Native.Key.DeviceType) < 0 && !Native.DeviceFromTexture(Texture2D.whiteTexture))
+            // Made again after a return to the menu: the native plugin has started already.
+            if (Native.Get(Native.Key.InitState) != 2)
             {
-                Say.Problem(Loc.T("con.no_device"));
-                yield break;
+                // Unity calls UnitySetGraphicsDevice when it loads the plugin from Plugins; else take the device from a texture.
+                if (Native.Get(Native.Key.DeviceType) < 0 && !Native.DeviceFromTexture(Texture2D.whiteTexture))
+                {
+                    Say.Problem(Loc.T("con.no_device"));
+                    yield break;
+                }
+                Native.Issue(Native.EventInit);
+                float until = Time.realtimeSinceStartup + 10f;
+                while (Native.Get(Native.Key.InitState) != 2 && Time.realtimeSinceStartup < until) yield return null;
+                if (Native.Get(Native.Key.RenderEvents) == 0)
+                    Say.Problem("the render thread did not call the plugin (GL.IssuePluginEvent) - plugin not loaded from Plugins?");
+                else if (Native.Get(Native.Key.InitState) != 2)
+                    Say.Problem("the native plugin did not finish starting in 10 s");
+                Say.NativeLines(Native.Drain()); // the start's own lines before the summary
+                Say.Detail(MsfMod.Status());
+                Say.Info("con.ready", Palette.Brand + " " + Palette.Colorize(Palette.Accent, "v" + MsfMod.ModVersion),
+                         SystemInfo.graphicsDeviceName);
+                Say.Line(SettingsPage.Capabilities(true));
             }
-            Native.Issue(Native.EventInit);
-            float until = Time.realtimeSinceStartup + 10f;
-            while (Native.Get(Native.Key.InitState) != 2 && Time.realtimeSinceStartup < until) yield return null;
-            if (Native.Get(Native.Key.RenderEvents) == 0)
-                Say.Problem("the render thread did not call the plugin (GL.IssuePluginEvent) - plugin not loaded from Plugins?");
-            else if (Native.Get(Native.Key.InitState) != 2)
-                Say.Problem("the native plugin did not finish starting in 10 s");
-            Say.NativeLines(Native.Drain()); // the start's own lines before the summary
-            Say.Detail(MsfMod.Status());
-            Say.Info("con.ready", Palette.Brand + " " + Palette.Colorize(Palette.Accent, "v" + MsfMod.ModVersion),
-                     SystemInfo.graphicsDeviceName);
-            Say.Line(SettingsPage.Capabilities(true));
             SettingsPage.OnNativeReady();
             ready = true;
             Camera.onPreCull += OnAnyPreCull;
@@ -456,6 +473,13 @@ namespace MySummerFrames
                     DlssCamera.Attach(c);
                     MsfMod.ApplyToCamera();
                 }
+            }
+            // Frame generation follows the player's camera at once (it runs in the game scene only).
+            bool hasCamera = DlssCamera.Current != null;
+            if (hasCamera != hadCamera)
+            {
+                hadCamera = hasCamera;
+                FgDirty = true;
             }
             ApplyFg();
             ApplyReflex();

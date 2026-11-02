@@ -25,6 +25,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 function Step([string]$m, [string]$c = 'Cyan') { Write-Host "[msf] $m" -ForegroundColor $c }
+# git writes its progress to stderr: a terminating error in Windows PowerShell under ErrorActionPreference Stop.
+function GitQuiet { $ErrorActionPreference = 'Continue'; & git.exe @args 2>&1 | Out-Null }
 
 $Sdk = Join-Path $Root '_sdk\DLSS'
 if (-not (Test-Path (Join-Path $Sdk 'include\nvsdk_ngx.h'))) {
@@ -32,9 +34,9 @@ if (-not (Test-Path (Join-Path $Sdk 'include\nvsdk_ngx.h'))) {
     New-Item -ItemType Directory -Force (Join-Path $Root '_sdk') | Out-Null
     Push-Location (Join-Path $Root '_sdk')
     try {
-        & git clone --depth 1 --filter=blob:none --sparse https://github.com/NVIDIA/DLSS.git 2>&1 | Out-Null
+        GitQuiet clone --depth 1 --filter=blob:none --sparse https://github.com/NVIDIA/DLSS.git
         Set-Location DLSS
-        & git sparse-checkout set include lib/Windows_x86_64 doc 2>&1 | Out-Null
+        GitQuiet sparse-checkout set include lib/Windows_x86_64 doc
     } finally { Pop-Location }
     if (-not (Test-Path (Join-Path $Sdk 'include\nvsdk_ngx.h'))) { Step 'DLSS SDK fetch failed.' 'Red'; exit 1 }
 }
@@ -44,7 +46,7 @@ $Nvapi = Join-Path $Root '_sdk\nvapi'
 if (-not (Test-Path (Join-Path $Nvapi 'nvapi.h'))) {
     Step 'Fetching NVAPI...'
     Push-Location (Join-Path $Root '_sdk')
-    try { & git clone --depth 1 https://github.com/NVIDIA/nvapi.git 2>&1 | Out-Null } finally { Pop-Location }
+    try { GitQuiet clone --depth 1 https://github.com/NVIDIA/nvapi.git } finally { Pop-Location }
     if (-not (Test-Path (Join-Path $Nvapi 'nvapi.h'))) { Step 'NVAPI fetch failed.' 'Red'; exit 1 }
 }
 
@@ -56,10 +58,10 @@ if (-not (Test-Path (Join-Path $FfxKit 'signedbin\amd_fidelityfx_loader_dx12.dll
     Step "Fetching the AMD FSR SDK $FfxTag..."
     Push-Location (Join-Path $Root '_sdk')
     try {
-        & git clone --depth 1 --branch $FfxTag --filter=blob:none --sparse https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK.git 2>&1 | Out-Null
+        GitQuiet clone --depth 1 --branch $FfxTag --filter=blob:none --sparse https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK.git
         Set-Location FidelityFX-SDK
-        & git sparse-checkout set --no-cone '/Kits/FidelityFX/api/' '/Kits/FidelityFX/framegeneration/' '/Kits/FidelityFX/upscalers/' `
-            '/Kits/FidelityFX/docs/' '/Kits/FidelityFX/signedbin/*dx12*' '/Kits/FidelityFX/readme.md' '/readme.md' 2>&1 | Out-Null
+        GitQuiet sparse-checkout set --no-cone '/Kits/FidelityFX/api/' '/Kits/FidelityFX/framegeneration/' '/Kits/FidelityFX/upscalers/' `
+            '/Kits/FidelityFX/docs/' '/Kits/FidelityFX/signedbin/*dx12*' '/Kits/FidelityFX/readme.md' '/readme.md'
     } finally { Pop-Location }
     if (-not (Test-Path (Join-Path $FfxKit 'signedbin\amd_fidelityfx_loader_dx12.dll'))) { Step 'FSR SDK fetch failed.' 'Red'; exit 1 }
 }
@@ -73,6 +75,8 @@ if (-not $ManagedOnly) {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     $vs = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     if (-not $vs) { $vs = & $vswhere -latest -products * -property installationPath }
+    # An installation the installer marks incomplete (cl.exe present all the same) shows with -all only.
+    if (-not $vs) { $vs = & $vswhere -all -latest -products * -property installationPath }
     $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
     if (-not (Test-Path $vcvars)) { Step "vcvars64.bat not found under '$vs'." 'Red'; exit 1 }
 
@@ -92,7 +96,7 @@ if (-not $ManagedOnly) {
         "cl /nologo /I`"$Obj`" /std:c++20 /O2 /MT /EHsc /W4 /Zi /utf-8 /DUNICODE /D_UNICODE /I`"$(Join-Path $Sdk 'include')`" /I`"$Nvapi`" /I`"$FfxKit`" /Fo`"$Obj\\`" /Fd`"$Obj\\`" $sources /LD /Fe`"$dll`" /link /DEBUG /OPT:REF /OPT:ICF /LIBPATH:`"$lib`" /LIBPATH:`"$(Join-Path $Nvapi 'amd64')`" nvsdk_ngx_s.lib nvapi64.lib d3d11.lib d3d12.lib dxgi.lib user32.lib advapi32.lib dbghelp.lib || exit /b 1"
     ) | Set-Content -Encoding ASCII $bat
     Step 'Building the native core...'
-    & cmd.exe /c "`"$bat`""
+    & cmd.exe /c "`"$bat`" 2>&1" # stderr inside cmd: vcvars warns there, a terminating error in Windows PowerShell
     if ($LASTEXITCODE -ne 0) { Step 'Native build failed.' 'Red'; exit 1 }
     Copy-Item $dll $Assets -Force
 
