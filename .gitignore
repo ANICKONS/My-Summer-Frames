@@ -6,6 +6,8 @@ obj/
 bin/
 # Release archives
 *.zip
+# Nexus description (not committed, local only)
+nexus-description.txt
 # Game sessions of scripts\run.ps1 (save backups, logs, screenshots)
 _testruns/
 __pycache__/
