@@ -17,6 +17,8 @@ namespace MySummerFrames
         public const string Accent = "#35E0E0";     // names, versions, values: cyan
         public const string Good = "#3FB950";       // works / on
         public const string Muted = "#9AA6B2";      // off / details, grey
+        public const string TitleYellow = "#F5C518"; // "My Summer" yellow
+        public const string TitleRed = "#ED1C24";    // "Frames" red (like on the banner)
 
         // ===== Settings page =====
         public const string Nvidia = "#76B900";
@@ -36,5 +38,8 @@ namespace MySummerFrames
 
         /// <summary>"My Summer Frames", "Frames" in the mod's orange.</summary>
         public static string Brand => Bold("My Summer " + Colorize(Tag, "Frames"));
+
+        /// <summary>"My Summer Frames" for the console: "My Summer" yellow, "Frames" red (like the banner).</summary>
+        public static string ConsoleBrand => Bold(Colorize(TitleYellow, "My Summer ") + Colorize(TitleRed, "Frames"));
     }
 }

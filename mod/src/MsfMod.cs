@@ -16,7 +16,7 @@ namespace MySummerFrames
     public class MsfMod : Mod
     {
         public const string ModId = "MySummerFrames";
-        public const string ModVersion = "0.5.0";
+        public const string ModVersion = "0.5.1";
 
         public override string ID => ModId;
         public override string Name => "My Summer Frames";
@@ -429,9 +429,9 @@ namespace MySummerFrames
                     Say.Problem("the native plugin did not finish starting in 10 s");
                 Say.NativeLines(Native.Drain()); // the start's own lines before the summary
                 Say.Detail(MsfMod.Status());
-                Say.Info("con.ready", Palette.Brand + " " + Palette.Colorize(Palette.Accent, "v" + MsfMod.ModVersion),
+                Say.Info("con.ready", Palette.ConsoleBrand + " " + Palette.Colorize(Palette.Accent, "v" + MsfMod.ModVersion),
                          SystemInfo.graphicsDeviceName);
-                Say.Line(SettingsPage.Capabilities(true));
+                Say.Line(SettingsPage.CapabilitiesConsole());
             }
             SettingsPage.OnNativeReady();
             ready = true;
@@ -610,7 +610,7 @@ namespace MySummerFrames
                 {
                     case "status": Say.Answer(MsfMod.Status()); break;
                     case "info":
-                        Say.Answer(SystemInfo.graphicsDeviceName + ": " + (Native.Loaded ? SettingsPage.Capabilities(true) : "native plugin not loaded"));
+                        Say.Answer(SystemInfo.graphicsDeviceName + ":\n" + (Native.Loaded ? SettingsPage.CapabilitiesConsole() : "native plugin not loaded"));
                         break;
                     case "on":
                     case "off":

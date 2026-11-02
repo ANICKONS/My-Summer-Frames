@@ -20,6 +20,9 @@ namespace MySummerFrames
             { "info.yes", "yes" },
             { "info.no", "no" },
             { "info.up_to", "up to {0}x" },
+            { "info.available", "Available" },
+            { "info.unavailable", "Unavailable" },
+            { "info.caps_line", "{0}: {1}" },
 
             // === Language ===
             { "header.language", "Language / Язык" },
@@ -97,6 +100,9 @@ namespace MySummerFrames
             { "info.yes", "да" },
             { "info.no", "нет" },
             { "info.up_to", "до {0}x" },
+            { "info.available", "Доступно" },
+            { "info.unavailable", "Недоступно" },
+            { "info.caps_line", "{0}: {1}" },
 
             // === Upscaling ===
             { "header.upscaling", "Сглаживание и апскейл" },

@@ -91,27 +91,47 @@ namespace MySummerFrames
         {
             string card = Palette.Colorize(Palette.Hint, SystemInfo.graphicsDeviceName);
             if (!nativeReady) return card + "\n" + Palette.Colorize(Palette.Hint, Loc.T("info.checking"));
-            return card + "\n" + Capabilities(true);
+            return card + "\n\n" + CapabilitiesSettings();
         }
 
         static string About() =>
             Palette.Colorize(Palette.Hint, "My Summer Frames v" + MsfMod.ModVersion + " · MSCLoader v" + ModLoader.MSCLoader_Ver + "\n" +
                                            Loc.T("about.sdks") + "\n" + Loc.T("about.trademarks"));
 
-        /// <summary>"DLSS yes · DLSS FG up to 6x · FSR 3.1.6 · FSR FG yes · Reflex yes" (green: works, grey: not).</summary>
-        public static string Capabilities(bool colored)
+        /// <summary>Capabilities for the settings page: structured list with colors.</summary>
+        static string CapabilitiesSettings()
         {
             string fsr = First(Native.GetText(Native.Text.FsrUpVersions));
             string fsrFg = First(Native.GetText(Native.Text.FsrFgVersions));
             int fg = Native.Get(Native.Key.FgAvailable) != 0 ? Mathf.Max(1, Native.Get(Native.Key.FgMultiFrameMax)) + 1 : 0;
-            return Loc.F("con.caps",
-                         Value(colored, DlssCamera.DlssAvailable, Loc.T(DlssCamera.DlssAvailable ? "info.yes" : "info.no")),
-                         Value(colored, fg > 0, fg > 0 ? Loc.F("info.up_to", fg) : Loc.T("info.no")),
-                         Value(colored, DlssCamera.FsrAvailable && fsr.Length > 0, DlssCamera.FsrAvailable && fsr.Length > 0 ? fsr : Loc.T("info.no")),
-                         Value(colored, Native.Get(Native.Key.FsrFgAvailable) == 1 && fsrFg.Length > 0,
-                               Loc.T(Native.Get(Native.Key.FsrFgAvailable) == 1 && fsrFg.Length > 0 ? "info.yes" : "info.no")),
-                         Value(colored, ReflexAvailable, Loc.T(ReflexAvailable ? "info.yes" : "info.no")));
+            bool fsrUp = DlssCamera.FsrAvailable && fsr.Length > 0;
+            bool fsrFgOk = Native.Get(Native.Key.FsrFgAvailable) == 1 && fsrFg.Length > 0;
+
+            return Loc.F("info.caps_line", "DLSS", Av(DlssCamera.DlssAvailable)) + "\n" +
+                   Loc.F("info.caps_line", "DLSS FG", fg > 0 ? Av(true) + " " + Palette.Colorize(Palette.Muted, Loc.F("info.up_to", fg)) : Av(false)) + "\n" +
+                   Loc.F("info.caps_line", "FSR", fsrUp ? Av(true) + " " + Palette.Colorize(Palette.Muted, fsr) : Av(false)) + "\n" +
+                   Loc.F("info.caps_line", "FSR FG", Av(fsrFgOk)) + "\n" +
+                   Loc.F("info.caps_line", "Reflex", Av(ReflexAvailable));
         }
+
+        /// <summary>Capabilities for the console: structured list.</summary>
+        public static string CapabilitiesConsole()
+        {
+            string fsr = First(Native.GetText(Native.Text.FsrUpVersions));
+            string fsrFg = First(Native.GetText(Native.Text.FsrFgVersions));
+            int fg = Native.Get(Native.Key.FgAvailable) != 0 ? Mathf.Max(1, Native.Get(Native.Key.FgMultiFrameMax)) + 1 : 0;
+            bool fsrUp = DlssCamera.FsrAvailable && fsr.Length > 0;
+            bool fsrFgOk = Native.Get(Native.Key.FsrFgAvailable) == 1 && fsrFg.Length > 0;
+
+            return Loc.F("info.caps_line", "DLSS", AvConsole(DlssCamera.DlssAvailable)) + "\n" +
+                   Loc.F("info.caps_line", "DLSS FG", fg > 0 ? AvConsole(true) + " " + Palette.Colorize(Palette.Muted, "(" + Loc.F("info.up_to", fg) + ")") : AvConsole(false)) + "\n" +
+                   Loc.F("info.caps_line", "FSR", fsrUp ? AvConsole(true) + " " + Palette.Colorize(Palette.Muted, "(" + fsr + ")") : AvConsole(false)) + "\n" +
+                   Loc.F("info.caps_line", "FSR FG", AvConsole(fsrFgOk)) + "\n" +
+                   Loc.F("info.caps_line", "Reflex", AvConsole(ReflexAvailable));
+        }
+
+        static string Av(bool ok) => Palette.Colorize(ok ? Palette.Good : Palette.Muted, Loc.T(ok ? "info.available" : "info.unavailable"));
+        static string AvConsole(bool ok) => Palette.Colorize(ok ? Palette.Good : Palette.Muted, Loc.T(ok ? "info.available" : "info.unavailable"));
 
         static bool ReflexAvailable => Native.Get(Native.Key.ReflexAvailable) == 1;
 
