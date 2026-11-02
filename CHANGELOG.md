@@ -3,7 +3,7 @@
 ## 0.5.1
 
 - **Improved:** the capabilities list in the settings page and the console is now structured (one feature per line: DLSS, DLSS FG, FSR, FSR FG, Reflex).
-- **Improved:** "My Summer Frames" in the console startup message now uses the banner colors (yellow + red).
+- **Improved:** "My Summer Frames" in the console startup message now uses yellow + green colors.
 
 ## 0.5.0
 
