@@ -4,6 +4,8 @@ _sdk/
 out/
 obj/
 bin/
+# Release archives
+*.zip
 # Game sessions of scripts\run.ps1 (save backups, logs, screenshots)
 _testruns/
 __pycache__/
