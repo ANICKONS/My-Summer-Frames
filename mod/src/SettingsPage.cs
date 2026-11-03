@@ -169,7 +169,10 @@ namespace MySummerFrames
         static int DefaultUpscaler()
         {
             string name = SystemInfo.graphicsDeviceName ?? "";
-            bool rtx = SystemInfo.graphicsDeviceVendorID == 0x10DE && name.IndexOf("RTX", StringComparison.OrdinalIgnoreCase) >= 0;
+            // The vendor id can be wrong (a graphics wrapper reports another one): the name says NVIDIA as well.
+            bool nvidia = SystemInfo.graphicsDeviceVendorID == 0x10DE || name.IndexOf("NVIDIA", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          name.IndexOf("GeForce", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool rtx = nvidia && name.IndexOf("RTX", StringComparison.OrdinalIgnoreCase) >= 0;
             return rtx ? 1 : 2;
         }
 

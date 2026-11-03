@@ -49,6 +49,37 @@ namespace msf
             return info;
         }
 
+        // The graphics DLLs of the process: a dxgi / d3d11 / d3d12 not from the system folder is a wrapper (it can hide
+        // the video card: a vendor id that is not the card's, a device NVAPI and NGX do not know). True when the NVIDIA
+        // D3D11 driver is loaded (the video card under any wrapper).
+        bool GraphicsModules()
+        {
+            wchar_t sys[MAX_PATH] = {};
+            UINT n = GetSystemDirectoryW(sys, MAX_PATH);
+            std::wstring system(sys, n);
+            for (const wchar_t* name : {L"dxgi.dll", L"d3d11.dll", L"d3d12.dll"})
+            {
+                HMODULE m = GetModuleHandleW(name);
+                if (!m) continue;
+                wchar_t path[MAX_PATH] = {};
+                GetModuleFileNameW(m, path, MAX_PATH);
+                std::wstring p(path);
+                bool own = p.size() > system.size() && _wcsnicmp(p.c_str(), system.c_str(), system.size()) == 0 && p[system.size()] == L'\\';
+                if (own) Log("graphics module: %s", Narrow(p).c_str());
+                else LogE("A graphics wrapper is loaded: %s. It can hide the video card from DLSS, Reflex and FSR: remove it if they do not work.",
+                          Narrow(p).c_str());
+            }
+            const wchar_t* drivers[] = {L"nvwgf2umx.dll", L"amdxx64.dll", L"atidxx64.dll", L"igd10iumd64.dll", L"igdumdim64.dll"};
+            bool nvidia = false;
+            for (const wchar_t* d : drivers)
+                if (GetModuleHandleW(d))
+                {
+                    Log("graphics driver: %s", Narrow(d).c_str());
+                    if (d == drivers[0]) nvidia = true;
+                }
+            return nvidia;
+        }
+
         bool AdapterOf(ID3D11Device* device, ComPtr<IDXGIAdapter1>& out, DXGI_ADAPTER_DESC1& desc)
         {
             ComPtr<IDXGIDevice> dxgi;
@@ -145,7 +176,8 @@ namespace msf
         // Note: VendorId can be unreliable on some systems, so we try NGX init regardless and check the result.
         bool nvidiaByVendor = adapter && desc.VendorId == 0x10DE;
         bool nvidiaByName = adapter && (wcsstr(desc.Description, L"NVIDIA") != nullptr || wcsstr(desc.Description, L"GeForce") != nullptr || wcsstr(desc.Description, L"RTX") != nullptr);
-        bool tryNgx = nvidiaByVendor || nvidiaByName;
+        bool nvidiaByDriver = GraphicsModules();
+        bool tryNgx = nvidiaByVendor || nvidiaByName || nvidiaByDriver;
         if (tryNgx)
         {
             InitD3D11(g.device11, info);

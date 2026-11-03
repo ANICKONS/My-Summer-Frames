@@ -16,7 +16,7 @@ namespace MySummerFrames
     public class MsfMod : Mod
     {
         public const string ModId = "MySummerFrames";
-        public const string ModVersion = "0.5.2";
+        public const string ModVersion = "0.5.3";
 
         public override string ID => ModId;
         public override string Name => "My Summer Frames";

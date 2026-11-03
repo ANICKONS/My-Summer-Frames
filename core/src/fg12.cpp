@@ -161,15 +161,24 @@ namespace msf
             // share_test.cpp); the colour formats open without it. The fences keep the two APIs apart anyway.
             rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
             if (f == DXGI_FORMAT_R32_FLOAT || f == DXGI_FORMAT_R16G16_FLOAT) rd.Flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
+            const char* step = "D3D12 texture";
             HRESULT hr = d12->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_SHARED, &rd, D3D12_RESOURCE_STATE_COMMON, nullptr,
                                                       IID_PPV_ARGS(&t.r12));
             HANDLE handle = nullptr;
-            if (SUCCEEDED(hr)) hr = d12->CreateSharedHandle(t.r12.Get(), nullptr, GENERIC_ALL, nullptr, &handle);
-            if (SUCCEEDED(hr)) hr = d11->OpenSharedResource1(handle, IID_PPV_ARGS(&t.r11));
+            if (SUCCEEDED(hr))
+            {
+                step = "shared handle";
+                hr = d12->CreateSharedHandle(t.r12.Get(), nullptr, GENERIC_ALL, nullptr, &handle);
+            }
+            if (SUCCEEDED(hr))
+            {
+                step = "open on the game's D3D11 device";
+                hr = d11->OpenSharedResource1(handle, IID_PPV_ARGS(&t.r11));
+            }
             if (handle) CloseHandle(handle);
             if (FAILED(hr))
             {
-                LogE("DLSS FG: shared %s %ux%u %s failed 0x%08X", tag, w, h, FormatName(f).c_str(), static_cast<unsigned>(hr));
+                LogE("DLSS FG: shared %s %ux%u %s failed at %s: 0x%08X", tag, w, h, FormatName(f).c_str(), step, static_cast<unsigned>(hr));
                 t = SharedTex{};
                 return false;
             }
