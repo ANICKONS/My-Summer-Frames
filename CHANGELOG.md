@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.3
+
+- **Fixed:** the game froze on the way back to the main menu (Quit to menu, or save and quit) with frame generation on.
+  Frame generation now runs in the game scene only and the mod starts again in the menu.
+- **Fixed:** DLSS on an NVIDIA card whose vendor ID a graphics wrapper reports wrongly: the NVIDIA driver in the
+  process counts as well. The default upscaler on the first start follows the card's name too.
+- **New:** a graphics wrapper (`dxgi.dll`, `d3d11.dll` or `d3d12.dll` not from the system folder) is named in the console:
+  it can hide the video card from DLSS, Reflex and FSR.
+- **Improved:** a failed shared texture names the step in `msf.log`; a NullReferenceException of the game's scripts is no
+  longer logged as a crash (a real crash after it is still reported).
+
 ## 0.5.2
 
 - **Fixed:** DLSS and Reflex detection on systems where GPU vendor ID is reported incorrectly. Now checks GPU name (NVIDIA/GeForce/RTX) in addition to vendor ID.

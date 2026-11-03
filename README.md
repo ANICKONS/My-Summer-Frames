@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ANICKONS/My-Summer-Frames/releases"><img src="https://img.shields.io/badge/version-0.5.2-f5c518" alt="Version 0.5.2"></a>
+  <a href="https://github.com/ANICKONS/My-Summer-Frames/releases"><img src="https://img.shields.io/badge/version-0.5.3-f5c518" alt="Version 0.5.3"></a>
   <img src="https://img.shields.io/badge/MSCLoader-1.4.2%2B-2ea44f" alt="MSCLoader 1.4.2+">
   <img src="https://img.shields.io/badge/Direct3D-11%20%2B%2012-0078d4" alt="Direct3D 11 + 12">
   <img src="https://img.shields.io/badge/languages-English%20%7C%20Russian-lightgrey" alt="English | Russian">
