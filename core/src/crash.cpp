@@ -107,6 +107,13 @@ namespace msf
             if (code != EXCEPTION_ACCESS_VIOLATION && code != EXCEPTION_ILLEGAL_INSTRUCTION && code != EXCEPTION_STACK_OVERFLOW &&
                 code != STATUS_HEAP_CORRUPTION && code != EXCEPTION_PRIV_INSTRUCTION)
                 return EXCEPTION_CONTINUE_SEARCH;
+            // Mono's JIT code is in no module: an access violation there is a NullReferenceException that Mono handles
+            // (the game goes on), not a crash. Skipped, so it does not use up the one report. VirtualQuery takes no
+            // loader lock (the faulting thread may hold it).
+            MEMORY_BASIC_INFORMATION mbi = {};
+            if (code == EXCEPTION_ACCESS_VIOLATION && VirtualQuery(info->ExceptionRecord->ExceptionAddress, &mbi, sizeof(mbi)) &&
+                mbi.Type != MEM_IMAGE)
+                return EXCEPTION_CONTINUE_SEARCH;
             if (reported.fetch_add(1) != 0) return EXCEPTION_CONTINUE_SEARCH;
             crashInfo = info;
             crashThread = GetCurrentThreadId();
